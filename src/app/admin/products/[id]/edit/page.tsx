@@ -11,6 +11,8 @@ type ProductForm = Omit<Product, "id" | "createdAt" | "images" | "specs"> & {
   specsRaw: string;
 };
 
+const PLACEHOLDER_IMAGE = "https://placehold.co/400x400/f3f4f6/9ca3af?text=No+Image";
+
 export default function ProductFormPage() {
   const router = useRouter();
   const params = useParams();
@@ -19,6 +21,8 @@ export default function ProductFormPage() {
 
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [urlInput, setUrlInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const {
@@ -55,28 +59,36 @@ export default function ProductFormPage() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Ảnh tối đa 5MB");
-      return;
-    }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Ảnh tối đa 5MB"); return; }
     setUploading(true);
+    setUploadProgress(0);
     try {
       const tempId = id || `temp_${Date.now()}`;
-      const url = await uploadProductImage(file, tempId);
+      const url = await uploadProductImage(file, tempId, setUploadProgress);
       setImages((prev) => [...prev, url]);
       toast.success("Tải ảnh thành công");
-    } catch {
-      toast.error("Không thể tải ảnh lên");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "";
+      toast.error(msg.includes("timeout")
+        ? "Upload timeout – hãy thử nhập URL ảnh bên dưới"
+        : "Không thể tải ảnh lên – thử nhập URL ảnh");
     } finally {
       setUploading(false);
+      setUploadProgress(0);
+      e.target.value = "";
     }
   };
 
+  const handleAddUrl = () => {
+    const trimmed = urlInput.trim();
+    if (!trimmed) return;
+    if (!/^https?:\/\/.+/.test(trimmed)) { toast.error("URL không hợp lệ"); return; }
+    setImages((prev) => [...prev, trimmed]);
+    setUrlInput("");
+    toast.success("Đã thêm ảnh từ URL");
+  };
+
   const onSubmit = async (data: ProductForm) => {
-    if (images.length === 0) {
-      toast.error("Vui lòng thêm ít nhất 1 ảnh");
-      return;
-    }
     setSubmitting(true);
     const specs: Record<string, string> = {};
     if (data.specsRaw) {
@@ -94,7 +106,7 @@ export default function ProductFormPage() {
       description: data.description,
       isInstallmentAvailable: data.isInstallmentAvailable,
       stock: data.stock ? Number(data.stock) : undefined,
-      images,
+      images: images.length > 0 ? images : [PLACEHOLDER_IMAGE],
       specs,
     };
     try {
@@ -199,11 +211,21 @@ export default function ProductFormPage() {
 
         {/* Images */}
         <div className="card p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Hình ảnh</h2>
-          <div className="flex flex-wrap gap-3 mb-3">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-gray-900">Hình ảnh</h2>
+            <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-lg">Không bắt buộc</span>
+          </div>
+          <div className="flex flex-wrap gap-3 mb-4">
+            {images.length === 0 && (
+              <div className="w-20 h-20 rounded-xl border border-gray-200 bg-gray-50 flex flex-col items-center justify-center">
+                <span className="text-2xl">📷</span>
+                <span className="text-[10px] text-gray-400 mt-0.5">Placeholder</span>
+              </div>
+            )}
             {images.map((url, i) => (
               <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
-                <img src={url} alt="" className="w-full h-full object-contain p-1" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={url} alt="" className="w-full h-full object-contain p-1" onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_IMAGE; }} />
                 <button
                   type="button"
                   onClick={() => setImages((prev) => prev.filter((_, j) => j !== i))}
@@ -213,13 +235,45 @@ export default function ProductFormPage() {
                 </button>
               </div>
             ))}
-            <label className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 hover:border-primary flex flex-col items-center justify-center cursor-pointer transition-colors">
-              <span className="text-2xl text-gray-400">+</span>
-              <span className="text-xs text-gray-400">Thêm ảnh</span>
+            <label className={`w-20 h-20 rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors ${uploading ? "border-primary bg-primary/5 cursor-not-allowed" : "border-gray-300 hover:border-primary"}`}>
+              {uploading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin mb-1" />
+                  <span className="text-[10px] text-primary">{uploadProgress > 0 ? `${Math.round(uploadProgress)}%` : "Đang tải"}</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-2xl text-gray-400">+</span>
+                  <span className="text-xs text-gray-400">Tải lên</span>
+                </>
+              )}
               <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
             </label>
           </div>
-          {uploading && <p className="text-sm text-primary">Đang tải ảnh...</p>}
+
+          {/* URL input */}
+          <div>
+            <p className="text-xs text-gray-500 mb-2">Hoặc nhập URL ảnh:</p>
+            <div className="flex gap-2">
+              <input
+                type="url"
+                value={urlInput}
+                onChange={(e) => setUrlInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddUrl())}
+                className="input-field flex-1 text-sm"
+                placeholder="https://example.com/image.jpg"
+              />
+              <button type="button" onClick={handleAddUrl} className="btn-secondary text-sm px-4 flex-shrink-0">
+                Thêm
+              </button>
+            </div>
+          </div>
+
+          {images.length === 0 && (
+            <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 mt-3">
+              ⚠️ Chưa có ảnh — sản phẩm sẽ hiển thị ảnh placeholder. Bạn có thể cập nhật ảnh sau.
+            </p>
+          )}
         </div>
 
         <div className="flex gap-3">

@@ -121,21 +121,34 @@ export async function uploadProductImage(
   productId: string,
   onProgress?: (p: number) => void
 ): Promise<string> {
-  const storageRef = ref(storage, `products/${productId}/${file.name}`);
+  const storageRef = ref(storage, `products/${productId}/${Date.now()}_${file.name}`);
   const uploadTask = uploadBytesResumable(storageRef, file);
 
   return new Promise((resolve, reject) => {
+    // Timeout 20s - nếu Firebase Storage chưa setup sẽ không treo mãi
+    const timer = setTimeout(() => {
+      uploadTask.cancel();
+      reject(new Error("Upload timeout: Firebase Storage chưa được cấu hình hoặc quá chậm"));
+    }, 20000);
+
     uploadTask.on(
       "state_changed",
       (snapshot) => {
-        const progress =
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
         onProgress?.(progress);
       },
-      reject,
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
       async () => {
-        const url = await getDownloadURL(uploadTask.snapshot.ref);
-        resolve(url);
+        clearTimeout(timer);
+        try {
+          const url = await getDownloadURL(uploadTask.snapshot.ref);
+          resolve(url);
+        } catch (e) {
+          reject(e);
+        }
       }
     );
   });
