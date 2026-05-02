@@ -63,4 +63,18 @@ export interface RepairService {
   icon: string;
   priceFrom: number;
   duration: string;
+  warranty?: string;
+  order?: number;
+}
+
+export interface ShopSettings {
+  phone: string;
+  phoneDisplay: string;
+  address: string;
+  addressShort: string;
+  hours: string;
+  mapUrl?: string;
+  facebookUrl?: string;
+  zaloUrl?: string;
+  aboutText?: string;
 }

@@ -12,6 +12,8 @@ const navItems = [
   { href: "/admin/products", label: "Sản phẩm", icon: "📱" },
   { href: "/admin/orders", label: "Đơn hàng", icon: "📦" },
   { href: "/admin/bookings", label: "Lịch sửa chữa", icon: "🔧" },
+  { href: "/admin/services", label: "Dịch vụ & Giá", icon: "⚙️" },
+  { href: "/admin/settings", label: "Cài đặt cửa hàng", icon: "🏪" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

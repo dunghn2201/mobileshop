@@ -4,6 +4,7 @@ import {
   getDocs,
   getDoc,
   addDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
   query,
@@ -20,7 +21,7 @@ import {
   deleteObject,
 } from "firebase/storage";
 import { db, storage } from "./firebase";
-import { Product, Order, Booking } from "@/types";
+import { Product, Order, Booking, ShopSettings, RepairService } from "@/types";
 
 // ─── Products ────────────────────────────────────────────────────────────────
 
@@ -143,4 +144,44 @@ export async function uploadProductImage(
 export async function deleteProductImage(url: string): Promise<void> {
   const imageRef = ref(storage, url);
   await deleteObject(imageRef);
+}
+
+// ─── Shop Settings ────────────────────────────────────────────────────────────
+
+export async function getShopSettings(): Promise<ShopSettings | null> {
+  const snap = await getDoc(doc(db, "settings", "shop"));
+  return snap.exists() ? (snap.data() as ShopSettings) : null;
+}
+
+export async function updateShopSettings(data: ShopSettings): Promise<void> {
+  await setDoc(doc(db, "settings", "shop"), data, { merge: true });
+}
+
+// ─── Repair Services (Firestore-managed) ─────────────────────────────────────
+
+export async function getRepairServicesDB(): Promise<RepairService[]> {
+  const q = query(
+    collection(db, "repairServices"),
+    orderBy("order", "asc")
+  );
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as RepairService));
+}
+
+export async function addRepairService(
+  data: Omit<RepairService, "id">
+): Promise<string> {
+  const docRef = await addDoc(collection(db, "repairServices"), data);
+  return docRef.id;
+}
+
+export async function updateRepairService(
+  id: string,
+  data: Partial<Omit<RepairService, "id">>
+): Promise<void> {
+  await updateDoc(doc(db, "repairServices", id), data);
+}
+
+export async function deleteRepairService(id: string): Promise<void> {
+  await deleteDoc(doc(db, "repairServices", id));
 }

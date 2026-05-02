@@ -83,6 +83,20 @@ export default function AdminDashboard() {
             <p className="text-sm text-gray-500">Xem lịch hẹn khách hàng</p>
           </div>
         </Link>
+        <Link href="/admin/services" className="card p-5 flex items-center gap-4 hover:shadow-md transition-shadow">
+          <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-xl">⚙️</div>
+          <div>
+            <p className="font-semibold text-gray-900">Dịch vụ & Giá</p>
+            <p className="text-sm text-gray-500">Cập nhật giá sửa chữa</p>
+          </div>
+        </Link>
+        <Link href="/admin/settings" className="card p-5 flex items-center gap-4 hover:shadow-md transition-shadow">
+          <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center text-xl">🏪</div>
+          <div>
+            <p className="font-semibold text-gray-900">Cài đặt cửa hàng</p>
+            <p className="text-sm text-gray-500">Địa chỉ, giờ mở cửa, liên kết</p>
+          </div>
+        </Link>
       </div>
     </div>
   );

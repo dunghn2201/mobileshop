@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
-import { SHOP_INFO } from "@/constants";
+import { useShopSettings } from "@/hooks/useShopSettings";
 
 export default function Footer() {
+  const shop = useShopSettings();
   return (
     <footer className="bg-gray-900 text-gray-400">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
@@ -18,8 +21,8 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-sm leading-relaxed">
-              Chuyên mua bán điện thoại chính hãng và sửa chữa các loại điện
-              thoại uy tín, giá tốt tại Ba Đồn, Quảng Bình.
+              {shop.aboutText ||
+                "Chuyên mua bán điện thoại chính hãng và sửa chữa các loại điện thoại uy tín, giá tốt tại Ba Đồn, Quảng Bình."}
             </p>
           </div>
 
@@ -67,21 +70,37 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li className="flex items-start gap-2">
                 <span>📍</span>
-                <span>{SHOP_INFO.address}</span>
+                <span>{shop.address}</span>
               </li>
               <li className="flex items-center gap-2">
                 <span>📞</span>
                 <a
-                  href={`tel:${SHOP_INFO.phone}`}
+                  href={`tel:${shop.phone}`}
                   className="hover:text-primary transition-colors"
                 >
-                  {SHOP_INFO.phoneDisplay}
+                  {shop.phoneDisplay}
                 </a>
               </li>
               <li className="flex items-center gap-2">
                 <span>⏰</span>
-                <span>{SHOP_INFO.hours}</span>
+                <span>{shop.hours}</span>
               </li>
+              {shop.facebookUrl && (
+                <li className="flex items-center gap-2">
+                  <span>🔷</span>
+                  <a href={shop.facebookUrl} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                    Facebook
+                  </a>
+                </li>
+              )}
+              {shop.zaloUrl && (
+                <li className="flex items-center gap-2">
+                  <span>💬</span>
+                  <a href={shop.zaloUrl} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                    Zalo
+                  </a>
+                </li>
+              )}
             </ul>
           </div>
         </div>

@@ -3,12 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useCartStore } from "@/store/cartStore";
-import { SHOP_INFO } from "@/constants";
 import { cn } from "@/lib/utils";
+import { useShopSettings } from "@/hooks/useShopSettings";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const totalItems = useCartStore((s) => s.totalItems());
+  const shop = useShopSettings();
 
   const navLinks = [
     { href: "/", label: "Trang chủ" },
@@ -21,8 +22,8 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-sm">
       {/* Top bar */}
       <div className="bg-primary text-white text-xs py-1.5 px-4 text-center hidden md:block">
-        📞 Hotline: {SHOP_INFO.phoneDisplay} | ⏰ {SHOP_INFO.hours} | 📍{" "}
-        {SHOP_INFO.addressShort}
+        📞 Hotline: {shop.phoneDisplay} | ⏰ {shop.hours} | 📍{" "}
+        {shop.addressShort}
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
