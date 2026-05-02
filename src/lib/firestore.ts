@@ -14,13 +14,7 @@ import {
   Query,
   DocumentData,
 } from "firebase/firestore";
-import {
-  ref,
-  uploadBytesResumable,
-  getDownloadURL,
-  deleteObject,
-} from "firebase/storage";
-import { db, storage } from "./firebase";
+import { db } from "./firebase";
 import { Product, Order, Booking, ShopSettings, RepairService } from "@/types";
 
 // ─── Products ────────────────────────────────────────────────────────────────
@@ -112,51 +106,6 @@ export async function updateBookingStatus(
   status: Booking["status"]
 ): Promise<void> {
   await updateDoc(doc(db, "bookings", id), { status });
-}
-
-// ─── Storage ─────────────────────────────────────────────────────────────────
-
-export async function uploadProductImage(
-  file: File,
-  productId: string,
-  onProgress?: (p: number) => void
-): Promise<string> {
-  const storageRef = ref(storage, `products/${productId}/${Date.now()}_${file.name}`);
-  const uploadTask = uploadBytesResumable(storageRef, file);
-
-  return new Promise((resolve, reject) => {
-    // Timeout 20s - nếu Firebase Storage chưa setup sẽ không treo mãi
-    const timer = setTimeout(() => {
-      uploadTask.cancel();
-      reject(new Error("Upload timeout: Firebase Storage chưa được cấu hình hoặc quá chậm"));
-    }, 20000);
-
-    uploadTask.on(
-      "state_changed",
-      (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        onProgress?.(progress);
-      },
-      (error) => {
-        clearTimeout(timer);
-        reject(error);
-      },
-      async () => {
-        clearTimeout(timer);
-        try {
-          const url = await getDownloadURL(uploadTask.snapshot.ref);
-          resolve(url);
-        } catch (e) {
-          reject(e);
-        }
-      }
-    );
-  });
-}
-
-export async function deleteProductImage(url: string): Promise<void> {
-  const imageRef = ref(storage, url);
-  await deleteObject(imageRef);
 }
 
 // ─── Shop Settings ────────────────────────────────────────────────────────────

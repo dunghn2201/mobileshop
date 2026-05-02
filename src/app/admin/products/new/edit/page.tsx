@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
-import { addProduct, uploadProductImage } from "@/lib/firestore";
+import { addProduct } from "@/lib/firestore";
 import { Product } from "@/types";
 
 type ProductForm = Omit<Product, "id" | "createdAt" | "images" | "specs"> & {
@@ -16,8 +16,6 @@ const PLACEHOLDER_IMAGE = "https://placehold.co/400x400/f3f4f6/9ca3af?text=No+Im
 export default function NewProductEditPage() {
   const router = useRouter();
   const [images, setImages] = useState<string[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [urlInput, setUrlInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -26,29 +24,6 @@ export default function NewProductEditPage() {
     handleSubmit,
     formState: { errors },
   } = useForm<ProductForm>();
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { toast.error("Ảnh tối đa 5MB"); return; }
-    setUploading(true);
-    setUploadProgress(0);
-    try {
-      const url = await uploadProductImage(file, `temp_${Date.now()}`, setUploadProgress);
-      setImages((prev) => [...prev, url]);
-      toast.success("Tải ảnh thành công");
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Không thể tải ảnh lên";
-      toast.error(msg.includes("timeout")
-        ? "Upload timeout – hãy thử nhập URL ảnh bên dưới"
-        : "Không thể tải ảnh lên – thử nhập URL ảnh");
-    } finally {
-      setUploading(false);
-      setUploadProgress(0);
-      // Reset file input
-      e.target.value = "";
-    }
-  };
 
   const handleAddUrl = () => {
     const trimmed = urlInput.trim();
@@ -167,25 +142,12 @@ export default function NewProductEditPage() {
                 <button type="button" onClick={() => setImages((prev) => prev.filter((_, j) => j !== i))} className="absolute top-0.5 right-0.5 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600">×</button>
               </div>
             ))}
-            <label className={`w-20 h-20 rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors ${uploading ? "border-primary bg-primary/5 cursor-not-allowed" : "border-gray-300 hover:border-primary"}`}>
-              {uploading ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin mb-1" />
-                  <span className="text-[10px] text-primary">{uploadProgress > 0 ? `${Math.round(uploadProgress)}%` : "Đang tải"}</span>
-                </>
-              ) : (
-                <>
-                  <span className="text-2xl text-gray-400">+</span>
-                  <span className="text-xs text-gray-400">Tải lên</span>
-                </>
-              )}
-              <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
-            </label>
+
           </div>
 
           {/* URL input */}
           <div>
-            <p className="text-xs text-gray-500 mb-2">Hoặc nhập URL ảnh:</p>
+            <p className="text-xs text-gray-500 mb-2">Nhập URL ảnh (copy link từ Google, trang web...):</p>
             <div className="flex gap-2">
               <input
                 type="url"
