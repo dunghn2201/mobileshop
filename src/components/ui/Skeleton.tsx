@@ -10,11 +10,15 @@ export function Skeleton({ className }: SkeletonProps) {
 
 export function ProductCardSkeleton() {
   return (
-    <div className="card p-4 space-y-3">
-      <Skeleton className="aspect-square rounded-xl w-full" />
-      <Skeleton className="h-4 w-3/4" />
-      <Skeleton className="h-4 w-1/2" />
-      <Skeleton className="h-10 w-full rounded-xl" />
+    <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <Skeleton className="aspect-square w-full rounded-none" />
+      <div className="p-4 space-y-3">
+        <Skeleton className="h-3 w-16 rounded-full" />
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-3 w-1/2" />
+        <Skeleton className="h-6 w-2/5" />
+        <Skeleton className="h-10 w-full rounded-xl" />
+      </div>
     </div>
   );
 }
@@ -33,3 +37,4 @@ export function ProductDetailSkeleton() {
     </div>
   );
 }
+

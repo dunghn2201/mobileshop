@@ -22,21 +22,29 @@ export default function ProductFormPage() {
   const [images, setImages] = useState<string[]>([]);
   const [urlInput, setUrlInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [customBrand, setCustomBrand] = useState("");
 
   const {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<ProductForm>();
+
+  const selectedBrand = watch("brand");
 
   useEffect(() => {
     if (isEdit && id) {
       getProductById(id).then((product) => {
         if (!product) return;
+        const knownBrands = ["iPhone", "Samsung", "Xiaomi"];
+        if (!knownBrands.includes(product.brand)) {
+          setCustomBrand(product.brand);
+        }
         reset({
           name: product.name,
-          brand: product.brand,
+          brand: knownBrands.includes(product.brand) ? product.brand : "Khác",
           price: product.price,
           originalPrice: product.originalPrice,
           storage: product.storage,
@@ -64,6 +72,10 @@ export default function ProductFormPage() {
   };
 
   const onSubmit = async (data: ProductForm) => {
+    if (data.brand === "Khác" && !customBrand.trim()) {
+      toast.error("Vui lòng nhập tên thương hiệu");
+      return;
+    }
     setSubmitting(true);
     const specs: Record<string, string> = {};
     if (data.specsRaw) {
@@ -72,9 +84,10 @@ export default function ProductFormPage() {
         if (k && rest.length) specs[k.trim()] = rest.join(":").trim();
       });
     }
+    const brand = data.brand === "Khác" ? customBrand.trim() : data.brand;
     const payload = {
       name: data.name,
-      brand: data.brand,
+      brand,
       price: Number(data.price),
       originalPrice: data.originalPrice ? Number(data.originalPrice) : undefined,
       storage: data.storage,
@@ -85,16 +98,23 @@ export default function ProductFormPage() {
       specs,
     };
     try {
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("timeout")), 5000)
+      );
       if (isEdit && id) {
-        await updateProduct(id, payload);
+        await Promise.race([updateProduct(id, payload), timeout]);
         toast.success("Đã cập nhật sản phẩm");
       } else {
-        await addProduct(payload);
+        await Promise.race([addProduct(payload), timeout]);
         toast.success("Đã thêm sản phẩm");
       }
       router.push("/admin/products");
-    } catch {
-      toast.error("Có lỗi xảy ra");
+    } catch (err: unknown) {
+      console.error("[saveProduct error]", err);
+      const msg = err instanceof Error && err.message === "timeout"
+        ? "Timeout 5s — kiểm tra kết nối mạng"
+        : `Lỗi: ${err instanceof Error ? err.message : String(err)}`;
+      toast.error(msg, { duration: 8000 });
     } finally {
       setSubmitting(false);
     }
@@ -130,6 +150,15 @@ export default function ProductFormPage() {
                 <option value="Xiaomi">Xiaomi</option>
                 <option value="Khác">Khác</option>
               </select>
+              {selectedBrand === "Khác" && (
+                <input
+                  type="text"
+                  className="input-field mt-2"
+                  placeholder="Nhập tên thương hiệu..."
+                  value={customBrand}
+                  onChange={(e) => setCustomBrand(e.target.value)}
+                />
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">

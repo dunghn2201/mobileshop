@@ -3,10 +3,12 @@
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { motion } from "framer-motion";
 import { createBooking } from "@/lib/firestore";
 import { REPAIR_SERVICES } from "@/constants";
 import { formatPrice } from "@/lib/utils";
 import { Booking } from "@/types";
+import { fadeUp, stagger, scaleIn, viewportConfig } from "@/lib/animations";
 
 type BookingForm = Omit<Booking, "id" | "status" | "createdAt">;
 
@@ -37,23 +39,42 @@ export default function RepairPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       {/* Header */}
-      <div className="text-center mb-12">
+      <motion.div
+        variants={fadeUp}
+        initial="hidden"
+        animate="visible"
+        className="text-center mb-12"
+      >
         <h1 className="section-title mb-3">Dịch vụ Sửa chữa</h1>
         <p className="text-gray-500 max-w-xl mx-auto">
           Thợ lành nghề, linh kiện chính hãng, bảo hành minh bạch. Đặt lịch
           online — nhận phản hồi trong 15 phút.
         </p>
-      </div>
+      </motion.div>
 
       {/* Services Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-14">
+      <motion.div
+        variants={stagger}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportConfig}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-14"
+      >
         {REPAIR_SERVICES.map((svc) => (
-          <div
+          <motion.div
             key={svc.id}
+            variants={scaleIn}
+            whileHover={{ y: -4, boxShadow: "0 12px 32px rgba(10,132,255,0.10)" }}
             id={svc.id}
             className="card p-6 flex gap-4"
           >
-            <div className="text-3xl flex-shrink-0">{svc.icon}</div>
+            <motion.div
+              whileHover={{ scale: 1.2, rotate: 5 }}
+              transition={{ type: "spring", stiffness: 400 }}
+              className="text-3xl flex-shrink-0"
+            >
+              {svc.icon}
+            </motion.div>
             <div>
               <h3 className="font-bold text-gray-900 mb-1">{svc.name}</h3>
               <p className="text-gray-500 text-sm mb-3">{svc.description}</p>
@@ -65,12 +86,18 @@ export default function RepairPage() {
                 <span className="text-gray-500">{svc.duration}</span>
               </div>
             </div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {/* Booking Form */}
-      <div className="max-w-2xl mx-auto">
+      <motion.div
+        variants={fadeUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportConfig}
+        className="max-w-2xl mx-auto"
+      >
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
           <h2 className="text-xl font-bold text-gray-900 mb-6">
             📅 Đặt lịch sửa chữa
@@ -195,7 +222,7 @@ export default function RepairPage() {
             </form>
           )}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

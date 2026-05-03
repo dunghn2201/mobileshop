@@ -12,6 +12,19 @@ export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const handleTestFirestore = async () => {
+    toast("Đang test kết nối Firestore...", { duration: 2000 });
+    try {
+      const { collection: col, getDocs, limit, query } = await import("firebase/firestore");
+      const { db } = await import("@/lib/firebase");
+      await getDocs(query(col(db, "products"), limit(1)));
+      toast.success("✅ Kết nối Firestore OK!");
+    } catch (err) {
+      console.error("[test firestore]", err);
+      toast.error(`❌ Lỗi: ${err instanceof Error ? err.message : String(err)}`, { duration: 8000 });
+    }
+  };
+
   const load = () => {
     setLoading(true);
     getProducts()
@@ -37,9 +50,14 @@ export default function AdminProductsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Sản phẩm</h1>
-        <Link href="/admin/products/new" className="btn-primary text-sm py-2">
-          + Thêm sản phẩm
-        </Link>
+        <div className="flex gap-2">
+          <button onClick={handleTestFirestore} className="btn-outline text-sm py-2">
+            🔌 Test kết nối
+          </button>
+          <Link href="/admin/products/new" className="btn-primary text-sm py-2">
+            + Thêm sản phẩm
+          </Link>
+        </div>
       </div>
 
       {loading ? (

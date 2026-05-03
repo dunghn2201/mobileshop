@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { motion } from "framer-motion";
 import { getProductById } from "@/lib/firestore";
 import { useCartStore } from "@/store/cartStore";
 import { formatPrice } from "@/lib/utils";
 import { Product } from "@/types";
 import { ProductDetailSkeleton } from "@/components/ui/Skeleton";
 import ErrorMessage from "@/components/ui/ErrorMessage";
+import { slideInLeft, slideInRight, fadeUp, stagger } from "@/lib/animations";
 
 interface Props {
   params: { id: string };
@@ -61,7 +63,12 @@ export default function ProductDetailPage({ params }: Props) {
 
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
         {/* Image Gallery */}
-        <div className="space-y-3">
+        <motion.div
+          variants={slideInLeft}
+          initial="hidden"
+          animate="visible"
+          className="space-y-3"
+        >
           <div className="aspect-square relative bg-gray-50 rounded-2xl overflow-hidden border border-gray-100">
             <Image
               src={product.images[selectedImage] || "https://via.placeholder.com/600x600?text=No+Image"}
@@ -100,10 +107,14 @@ export default function ProductDetailPage({ params }: Props) {
               ))}
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Product Info */}
-        <div>
+        <motion.div
+          variants={slideInRight}
+          initial="hidden"
+          animate="visible"
+        >
           <p className="text-primary font-semibold text-sm uppercase tracking-wide mb-2">
             {product.brand}
           </p>
@@ -160,12 +171,19 @@ export default function ProductDetailPage({ params }: Props) {
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3 mb-8">
-            <button onClick={handleAddToCart} className="btn-primary flex-1 text-base py-3.5">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={handleAddToCart}
+              className="btn-primary flex-1 text-base py-3.5"
+            >
               🛒 Thêm vào giỏ
-            </button>
-            <Link href="/cart" className="btn-outline flex-1 text-center text-base py-3.5">
-              Mua ngay
-            </Link>
+            </motion.button>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} className="flex-1">
+              <Link href="/cart" className="btn-outline w-full text-center text-base py-3.5 block">
+                Mua ngay
+              </Link>
+            </motion.div>
           </div>
 
           {/* Specs */}
@@ -203,7 +221,7 @@ export default function ProductDetailPage({ params }: Props) {
               </p>
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
     </div>
   );

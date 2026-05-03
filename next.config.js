@@ -14,6 +14,18 @@ const nextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      {
+        protocol: "https",
+        hostname: "cdnv2.tgdd.vn",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.tgdd.vn",
+      },
+      {
+        protocol: "https",
+        hostname: "placehold.co",
+      },
     ],
   },
 };

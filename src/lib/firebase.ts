@@ -14,6 +14,11 @@ const firebaseConfig = {
 // Prevent duplicate Firebase app initialization
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
+if (typeof window !== "undefined") {
+  console.log("[Firebase] projectId:", firebaseConfig.projectId);
+  console.log("[Firebase] apiKey loaded:", !!firebaseConfig.apiKey);
+}
+
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 export default app;

@@ -38,10 +38,16 @@ export async function getProductById(id: string): Promise<Product | null> {
 export async function addProduct(
   data: Omit<Product, "id" | "createdAt">
 ): Promise<string> {
+  const clean = Object.fromEntries(
+    Object.entries(data).filter(([, v]) => v !== undefined)
+  );
+  console.log("[firestore.addProduct] clean payload:", JSON.stringify(clean, null, 2));
+  console.log("[firestore.addProduct] db instance:", db?.type, db?.app?.name);
   const docRef = await addDoc(collection(db, "products"), {
-    ...data,
+    ...clean,
     createdAt: serverTimestamp(),
   });
+  console.log("[firestore.addProduct] docRef.id:", docRef.id);
   return docRef.id;
 }
 
@@ -49,7 +55,10 @@ export async function updateProduct(
   id: string,
   data: Partial<Product>
 ): Promise<void> {
-  await updateDoc(doc(db, "products", id), data);
+  const clean = Object.fromEntries(
+    Object.entries(data).filter(([, v]) => v !== undefined)
+  );
+  await updateDoc(doc(db, "products", id), clean);
 }
 
 export async function deleteProduct(id: string): Promise<void> {

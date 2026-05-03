@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
 import { Product } from "@/types";
 import { getProducts } from "@/lib/firestore";
 import { BRAND_FILTERS, PRICE_FILTERS } from "@/constants";
@@ -9,6 +10,7 @@ import ProductCard from "@/components/ui/ProductCard";
 import { ProductCardSkeleton } from "@/components/ui/Skeleton";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import { cn } from "@/lib/utils";
+import { fadeUp, stagger, scaleIn, viewportConfig } from "@/lib/animations";
 
 export default function ProductsPage() {
   const searchParams = useSearchParams();
@@ -47,12 +49,17 @@ export default function ProductsPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       {/* Page Header */}
-      <div className="mb-8">
+      <motion.div
+        variants={fadeUp}
+        initial="hidden"
+        animate="visible"
+        className="mb-8"
+      >
         <h1 className="section-title">Sản phẩm</h1>
         <p className="text-gray-500 mt-1">
           Điện thoại chính hãng, bảo hành đầy đủ
         </p>
-      </div>
+      </motion.div>
 
       {/* Filters */}
       <div className="bg-white rounded-2xl p-4 mb-6 shadow-sm space-y-4">
@@ -115,7 +122,12 @@ export default function ProductsPage() {
 
       {/* Grid */}
       {!error && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <motion.div
+          variants={stagger}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
+        >
           {loading
             ? Array.from({ length: 8 }).map((_, i) => (
                 <ProductCardSkeleton key={i} />
@@ -123,9 +135,11 @@ export default function ProductsPage() {
             : filteredProducts.length === 0
             ? null
             : filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <motion.div key={product.id} variants={scaleIn}>
+                  <ProductCard product={product} />
+                </motion.div>
               ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Empty state */}
